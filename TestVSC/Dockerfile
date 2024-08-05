@@ -4,10 +4,10 @@ WORKDIR /app
 FROM mcr.microsoft.com/dotnet/sdk:8.0-nanoserver-1809 AS build
 ARG configuration=Release
 WORKDIR /src
-COPY ["TestVSC.csproj", "./"]
-RUN dotnet restore "TestVSC.csproj"
+COPY ["TestVSC/TestVSC.csproj", "TestVSC/"]
+RUN dotnet restore "TestVSC\TestVSC.csproj"
 COPY . .
-WORKDIR "/src/."
+WORKDIR "/src/TestVSC"
 RUN dotnet build "TestVSC.csproj" -c $configuration -o /app/build
 
 FROM build AS publish
