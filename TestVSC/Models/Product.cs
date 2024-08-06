@@ -3,10 +3,10 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace OnlineShop
 {
-    [Table("Products")]
+    // [Table("Products")]
     public class Product
     {
-        [Key]
+        // [Key]
         public int ProductID {set; get;}
 
         [Required]
@@ -17,16 +17,13 @@ namespace OnlineShop
         public decimal Price {set; get;}
 
         public int CateId {get; set;}
-        //Foreign Key
-        [ForeignKey("CateId")]
+        
+        //[ForeignKey("CateId")]
         //[Required]
         public Category? Category {get; set;}   //FK -> PK
 
-        //public int CateId2 {get; set;}
-        //Foreign Key
-        // [ForeignKey("CateId2")]
-        // //[Required]
-        // public Category? Category2 {get; set;}   //FK -> PK
+        public int CateId2 {get; set;}
+        public Category? Category2 {get; set;}   //FK -> PK
 
         //Hiển thị thông tin của bảng Products
         public void PrintInfo() => 

@@ -76,6 +76,31 @@ namespace OnlineShop
                     }
                 }
         }
+
+        public static void UpdateDatabase()
+        {
+            //Kết nối đến DB
+            using (var dbcontext = new OnlineShopDBContext())
+                {
+                    //Lấy tên DB
+                    string databasename = dbcontext.Database.GetDbConnection().Database;
+
+                    Console.WriteLine("Cập nhật " + databasename);
+
+                     //Thông báo nếu xoá DB thành công và không thành công
+                    try
+                    {
+                        // Áp dụng các migration để cập nhật DB
+                        dbcontext.Database.Migrate();
+                        Console.WriteLine($"CSDL {databasename} : cập nhật thành công");
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"CSDL {databasename} : không cập nhật được. Lỗi: {ex.Message}");
+                    }
+                }
+        }
+        
         #region Tam bo
         public static async Task InsertProduct ()
         {
@@ -170,15 +195,17 @@ namespace OnlineShop
         
         static void Main(string[] args)
         {
-            var dbcontext = new OnlineShopDBContext();
-            var result = from p in dbcontext.products
-                        join c in dbcontext.categories on p.ProductID equals c.CategoryID
-                        select new {
-                            ten = p.ProductName,
-                            danhmuc = c.Name,
-                            gia = p.Price
-                        };
-            result.ToList().ForEach(a => Console.WriteLine(a));
+            //UpdateDatabase();
+
+            // var dbcontext = new OnlineShopDBContext();
+            // var result = from p in dbcontext.products
+            //             join c in dbcontext.categories on p.ProductID equals c.CategoryID
+            //             select new {
+            //                 ten = p.ProductName,
+            //                 danhmuc = c.Name,
+            //                 gia = p.Price
+            //             };
+            // result.ToList().ForEach(a => Console.WriteLine(a));
 
             // var products = from p in dbcontext.products
             //                 where p.ProductName.Contains("o")
@@ -186,8 +213,8 @@ namespace OnlineShop
             //                 select p;
             // products.ToList().ForEach(p => p.PrintInfo());
 
-            // DropDatabase();
-            // CreateDatabase();
+            DropDatabase();
+            CreateDatabase();
 
             //await InsertProduct();
             //await ReadProduct();

@@ -13,5 +13,9 @@ namespace OnlineShop
         public string? Name {set; get;}
         [Column(TypeName = "ntext")]
         public string? Description {set; get;}
+
+        public virtual List<Product> Products {set; get;}
+
+        public CategoryDetail categoryDetail {set; get;}
     }
 }
