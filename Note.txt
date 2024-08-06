@@ -1,0 +1,7 @@
+	Tạo Model:
+- Table("TableName")
+- [Key] -> Primary Key
+- [Required] -> not null
+- [StringLength(50)] -> string = nvarchar
+- [Column(TypeName = "money")] <=> decimal
+- [ForeignKey("CateId")]

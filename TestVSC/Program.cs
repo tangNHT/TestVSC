@@ -13,16 +13,16 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace TestVSC
+namespace OnlineShop
 {
     class Program
     {
-        public static async Task CreateDatabase()
+        public static void CreateDatabase()
         {
             try
             {
                 //Kết nối đến DB
-                using (var dbcontext = new ProductDBContext())
+                using (var dbcontext = new OnlineShopDBContext())
                 {
                     //Lấy tên DB
                     string databasename = dbcontext.Database.GetDbConnection().Database;
@@ -30,7 +30,7 @@ namespace TestVSC
                     Console.WriteLine("Tạo " + databasename);
 
                     //Thông báo nếu tạo DB thành công và không thành công
-                    bool result = await dbcontext.Database.EnsureCreatedAsync();
+                    bool result = dbcontext.Database.EnsureCreated();
                     string resultstring = result ? "tạo thành công" : "đã có trước đó";
                     Console.WriteLine($"CSDL {databasename} : {resultstring}");
                 }
@@ -47,12 +47,12 @@ namespace TestVSC
                 }
         }
 
-        public static async Task DropDatabase()
+        public static void DropDatabase()
         {
             try
             {
                 //Kết nối đến DB
-                using (var dbcontext = new ProductDBContext())
+                using (var dbcontext = new OnlineShopDBContext())
                 {
                     //Lấy tên DB
                     string databasename = dbcontext.Database.GetDbConnection().Database;
@@ -60,7 +60,7 @@ namespace TestVSC
                     Console.WriteLine("Xoá " + databasename);
 
                      //Thông báo nếu xoá DB thành công và không thành công
-                    bool result = await dbcontext.Database.EnsureDeletedAsync();
+                    bool result = dbcontext.Database.EnsureDeleted();
                     string resultstring = result ? "xoá thành công" : "không xoá được";
                     Console.WriteLine($"CSDL {databasename} : {resultstring}");
                 }
@@ -76,49 +76,57 @@ namespace TestVSC
                     }
                 }
         }
-
+        #region Tam bo
         public static async Task InsertProduct ()
         {
-            using var dbcontext = new ProductDBContext();
+            using var dbcontext = new OnlineShopDBContext();
             
             #region Them nhieu san pham
-            var newProduct = new object[]{
-                new Product() {ProductName = "San pham 2", Provider = "Cong ty A"},
-                new Product() {ProductName = "San pham 3", Provider = "Cong ty B"},
-                new Product() {ProductName = "San pham 4", Provider = "Cong ty C"},
+            var newProducts = new object[]{
+                new Product() {ProductName = "San pham 2", Price = 1500},
+                new Product() {ProductName = "San pham 3", Price = 1500},
+                new Product() {ProductName = "San pham 4", Price = 1500},
             };
             #endregion
 
-            #region Them moi mot san pham
+            #region Them mot san pham
             var newOneProduct = new Product();
             newOneProduct.ProductName = "Sản phẩm 1";
-            newOneProduct.Provider = "Công ty 1";
+            newOneProduct.Price = 1400;
             #endregion
 
-            dbcontext.AddRange(newProduct);
+            //Thêm vào bảng Products một mảng sản phẩm
+            dbcontext.AddRange(newProducts);
+
+            //Thêm vào bảng Products một sản phẩm
+            dbcontext.Add(newOneProduct);
             int number_rows = await dbcontext.SaveChangesAsync();
             Console.WriteLine($"Đã chèn dòng {number_rows}");
         }
 
-        public static async Task ReadProduct ()
+        public static void ReadProduct()
         {
-            using var dbcontext = new ProductDBContext();
+            using var dbcontext = new OnlineShopDBContext();
 
-            var products = await dbcontext.products.ToListAsync();
+            //Hiển thị tất cả sản phẩm trong bảng Products
+            var products = dbcontext.products.ToList();
             products.ForEach(product => product.PrintInfo());
         }
 
         public static async Task UpdateProduct (int id, Product product)
         {
-            using var dbcontext = new ProductDBContext();
+            using var dbcontext = new OnlineShopDBContext();
 
+            //Tìm kiếm sản phẩm theo Id
             var findProduct = (from x in dbcontext.products 
                                 where x.ProductID == id
                                 select x).FirstOrDefault();
+            
             if (findProduct != null)
             {
+                //Tìm thấy sản phẩm thì sẽ cập nhật
                 findProduct.ProductName = product.ProductName;
-                findProduct.Provider = product.Provider;
+                findProduct.Price = product.Price;
                 int number_rows = await dbcontext.SaveChangesAsync();
                 Console.WriteLine($"Đã cập nhật {number_rows} dòng");
             }
@@ -128,13 +136,15 @@ namespace TestVSC
 
         public static async Task DeleteProduct (int id)
         {
-            using var dbcontext = new ProductDBContext();
+            using var dbcontext = new OnlineShopDBContext();
 
+            //Tìm kiếm sản phẩm theo Id
             var findProduct = (from x in dbcontext.products 
                                 where x.ProductID == id
                                 select x).FirstOrDefault();
             if (findProduct != null)
             {
+                //Tìm thấy sản phẩm thì xoá
                 dbcontext.Remove(findProduct);
                 int number_rows = await dbcontext.SaveChangesAsync();
                 Console.WriteLine($"Đã xoá {number_rows} dòng");
@@ -142,19 +152,64 @@ namespace TestVSC
             else
                 Console.WriteLine($"Xoá không thành công");
         }
+        #endregion
 
-        static async Task Main(string[] args)
+        public static void InsertCategory(Category category)
         {
-            //await DropDatabase();
-            //await CreateDatabase();
-            
-            //await InsertProduct();
-            await ReadProduct();
+            using var dbcontext = new OnlineShopDBContext();
+            dbcontext.categories.Add(category);
+            dbcontext.SaveChanges();
+        }
 
-            // Product product = new Product{ ProductName = "Laptop", Provider = "Công ty I",};
+        public static void InsertProduct(Product product)
+        {
+            using var dbcontext = new OnlineShopDBContext();
+            dbcontext.products.Add(product);
+            dbcontext.SaveChanges();
+        }
+        
+        static void Main(string[] args)
+        {
+            var dbcontext = new OnlineShopDBContext();
+            var result = from p in dbcontext.products
+                        join c in dbcontext.categories on p.ProductID equals c.CategoryID
+                        select new {
+                            ten = p.ProductName,
+                            danhmuc = c.Name,
+                            gia = p.Price
+                        };
+            result.ToList().ForEach(a => Console.WriteLine(a));
+
+            // var products = from p in dbcontext.products
+            //                 where p.ProductName.Contains("o")
+            //                 orderby p.Price descending
+            //                 select p;
+            // products.ToList().ForEach(p => p.PrintInfo());
+
+            // DropDatabase();
+            // CreateDatabase();
+
+            //await InsertProduct();
+            //await ReadProduct();
+
+            // Product product = new Product{ ProductName = "Laptop", Price = 1600,};
             // await UpdateProduct(2, product);
 
             //await DeleteProduct(3);
+
+            // Category category1 = new Category(){Name = "Dien thoai", Description = "Cac loai dien thoai"};
+            // Category category2 = new Category(){Name = "Do uong", Description = "Cac loai do uong"};
+            // InsertCategory(category1);
+            // InsertCategory(category2);
+
+            // Product product1 = new Product(){ProductName = "Iphone", Price = 1000000, CateId = 1};
+            // Product product2 = new Product(){ProductName = "SamSung", Price = 1000000, CateId = 1};
+            // Product product3 = new Product(){ProductName = "Ruou vang", Price = 500000, CateId = 2};
+            // InsertProduct(product1);
+            // InsertProduct(product2);
+            // InsertProduct(product3);
+
+            //ReadProduct();
         }
     }
 }
